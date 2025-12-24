@@ -9,7 +9,7 @@ if not exist ".git" (
   exit /b 1
 )
 
-echo Setting up ai-dental-receptionist-saas repository...
+echo Setting up repository...
 
 if exist "package.json" (
   echo Detected package.json.
@@ -34,8 +34,16 @@ if exist "requirements.txt" (
     if not exist ".venv" (
       python -m venv .venv
     )
-    call .venv\Scripts\activate
-    pip install -r requirements.txt
+    if not exist ".venv\Scripts\activate.bat" (
+      echo Virtual environment activation script not found; skipping Python dependency installation.
+    ) else (
+      call .venv\Scripts\activate
+      if errorlevel 1 (
+        echo Failed to activate virtual environment; skipping Python dependency installation.
+      ) else (
+        pip install -r requirements.txt
+      )
+    )
   )
 ) else (
   echo No requirements.txt found; skipping Python dependency installation.
