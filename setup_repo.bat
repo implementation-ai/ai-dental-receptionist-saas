@@ -64,11 +64,11 @@ if exist "requirements.txt" (
     )
     "%VENV_PYTHON%" -m pip install --upgrade pip
     if errorlevel 1 (
-      echo Failed to upgrade pip; continuing with the existing version.
+      echo Warning: failed to upgrade pip; continuing with the existing version.
     )
     "%VENV_PYTHON%" -m pip install -r requirements.txt
     if errorlevel 1 (
-      echo "%VENV_PYTHON%" -m pip install -r requirements.txt failed; please review the output above.
+      echo pip install failed; please review the output above.
       set "SETUP_FAILED=1"
     )
     :skip_python_install
