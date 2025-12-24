@@ -50,16 +50,16 @@ if exist "requirements.txt" (
       echo Virtual environment activation script not found; skipping Python dependency installation.
       set "SETUP_FAILED=1"
       goto :skip_python_install
-    ) else if not exist ".venv\Scripts\python.exe" (
+    )
+    if not exist ".venv\Scripts\python.exe" (
       echo Virtual environment Python executable not found; skipping Python dependency installation.
       set "SETUP_FAILED=1"
       goto :skip_python_install
-    ) else (
-      ".venv\Scripts\python.exe" -m pip install -r requirements.txt
-      if errorlevel 1 (
-        echo python -m pip install failed; please review the output above.
-        set "SETUP_FAILED=1"
-      )
+    )
+    ".venv\Scripts\python.exe" -m pip install -r requirements.txt
+    if errorlevel 1 (
+      echo python -m pip install failed; please review the output above.
+      set "SETUP_FAILED=1"
     )
     :skip_python_install
   )
