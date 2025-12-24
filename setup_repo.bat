@@ -19,6 +19,9 @@ if exist "package.json" (
   ) else (
     echo Installing Node.js dependencies...
     call npm install
+    if errorlevel 1 (
+      echo npm install failed; please review the output above.
+    )
   )
 ) else (
   echo No package.json found; skipping npm install.
@@ -34,7 +37,9 @@ if exist "requirements.txt" (
     if not exist ".venv" (
       python -m venv .venv
     )
-    if not exist ".venv\Scripts\activate.bat" (
+    if errorlevel 1 (
+      echo Failed to create virtual environment; skipping Python dependency installation.
+    ) else if not exist ".venv\Scripts\activate.bat" (
       echo Virtual environment activation script not found; skipping Python dependency installation.
     ) else (
       call .venv\Scripts\activate
