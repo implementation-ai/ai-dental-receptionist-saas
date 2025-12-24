@@ -14,7 +14,7 @@ echo Setting up repository...
 
 if exist "package.json" (
   echo Detected package.json.
-  where npm >nul 2>nul
+  where /q npm
   if errorlevel 1 (
     echo npm is not available on PATH; skipping Node.js dependency installation.
     set "SETUP_FAILED=1"
@@ -32,7 +32,7 @@ if exist "package.json" (
 
 if exist "requirements.txt" (
   echo Detected requirements.txt.
-  where python >nul 2>nul
+  where /q python
   if errorlevel 1 (
     echo Python is not available on PATH; skipping Python dependency installation.
     set "SETUP_FAILED=1"
@@ -50,18 +50,15 @@ if exist "requirements.txt" (
       echo Virtual environment activation script not found; skipping Python dependency installation.
       set "SETUP_FAILED=1"
       goto :skip_python_install
+    ) else if not exist ".venv\Scripts\python.exe" (
+      echo Virtual environment Python executable not found; skipping Python dependency installation.
+      set "SETUP_FAILED=1"
+      goto :skip_python_install
     ) else (
-      call .venv\Scripts\activate
-      if not defined VIRTUAL_ENV (
-        echo Failed to activate virtual environment; skipping Python dependency installation.
+      ".venv\Scripts\python.exe" -m pip install -r requirements.txt
+      if errorlevel 1 (
+        echo python -m pip install failed; please review the output above.
         set "SETUP_FAILED=1"
-        goto :skip_python_install
-      ) else (
-        python -m pip install -r requirements.txt
-        if errorlevel 1 (
-          echo python -m pip install failed; please review the output above.
-          set "SETUP_FAILED=1"
-        )
       )
     )
     :skip_python_install
