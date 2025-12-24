@@ -64,7 +64,7 @@ if exist "requirements.txt" (
     )
     "%VENV_PYTHON%" -m pip install --upgrade pip
     if errorlevel 1 (
-      echo Warning: failed to upgrade pip; continuing with the existing version.
+      echo Warning: failed to upgrade pip; continuing with the existing version. This may affect dependency compatibility.
     )
     "%VENV_PYTHON%" -m pip install -r requirements.txt
     if errorlevel 1 (
@@ -87,6 +87,7 @@ echo Repository setup complete.
 endlocal
 exit /b 0
 
+rem Helper: checks whether the given command is available on PATH.
 :ensure_on_path
 where /q "%~1"
 exit /b %ERRORLEVEL%
