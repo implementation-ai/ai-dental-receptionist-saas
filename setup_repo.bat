@@ -10,7 +10,7 @@ if not exist ".git" (
   exit /b 1
 )
 where /q git
-if not errorlevel 1 (
+if %ERRORLEVEL% EQU 0 (
   git rev-parse --git-dir >nul 2>&1
   if errorlevel 1 (
     echo This directory is not recognized as a valid Git repository.
@@ -24,7 +24,7 @@ echo Setting up repository...
 
 if exist "package.json" (
   echo Detected package.json.
-  where /q npm
+  call :ensure_on_path npm
   if errorlevel 1 (
     echo npm is not available on PATH; skipping Node.js dependency installation.
     set "SETUP_FAILED=1"
@@ -42,7 +42,7 @@ if exist "package.json" (
 
 if exist "requirements.txt" (
   echo Detected requirements.txt.
-  where /q python
+  call :ensure_on_path python
   if errorlevel 1 (
     echo Python is not available on PATH; skipping Python dependency installation.
     set "SETUP_FAILED=1"
@@ -55,11 +55,6 @@ if exist "requirements.txt" (
         set "SETUP_FAILED=1"
         goto :skip_python_install
       )
-    )
-    if not exist ".venv\Scripts\activate.bat" (
-      echo Virtual environment activation script not found; skipping Python dependency installation.
-      set "SETUP_FAILED=1"
-      goto :skip_python_install
     )
     if not exist ".venv\Scripts\python.exe" (
       echo Virtual environment Python executable not found; skipping Python dependency installation.
@@ -90,3 +85,7 @@ if defined SETUP_FAILED (
 echo Repository setup complete.
 endlocal
 exit /b 0
+
+:ensure_on_path
+where /q %1
+exit /b %ERRORLEVEL%
