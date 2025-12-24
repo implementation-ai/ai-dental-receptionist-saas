@@ -1,0 +1,121 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { verifyIdToken } from '@/lib/firebase-admin';
+
+export interface AuthenticatedRequest extends NextRequest {
+    user?: {
+        uid: string;
+        email?: string;
+        tenantId?: string;
+        role?: string;
+    };
+}
+
+/**
+ * Middleware to verify Firebase authentication token
+ * Usage in API routes:
+ * 
+ * export async function GET(request: Request) {
+ *   const user = await requireAuth(request);
+ *   // user is guaranteed to exist here
+ * }
+ */
+export async function requireAuth(request: Request) {
+    const authHeader = request.headers.get('Authorization');
+
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        throw new Error('Missing or invalid Authorization header');
+    }
+
+    const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+    try {
+        const decodedToken = await verifyIdToken(token);
+
+        return {
+            uid: decodedToken.uid,
+            email: decodedToken.email,
+            tenantId: decodedToken.tenantId as string | undefined,
+            role: decodedToken.role as string | undefined,
+        };
+    } catch (error) {
+        throw new Error('Invalid or expired token');
+    }
+}
+
+/**
+ * Middleware to verify tenant access
+ * Ensures the authenticated user belongs to the specified tenant
+ */
+export async function requireTenantAccess(request: Request, tenantId: string) {
+    const user = await requireAuth(request);
+
+    if (user.tenantId !== tenantId && user.role !== 'admin') {
+        throw new Error('Access denied: User does not belong to this tenant');
+    }
+
+    return user;
+}
+
+/**
+ * Middleware to verify admin role
+ */
+export async function requireAdmin(request: Request) {
+    const user = await requireAuth(request);
+
+    if (user.role !== 'admin' && user.role !== 'owner') {
+        throw new Error('Access denied: Admin privileges required');
+    }
+
+    return user;
+}
+
+/**
+ * Helper function to create error responses
+ */
+export function createErrorResponse(message: string, status: number = 401) {
+    return NextResponse.json(
+        { error: message },
+        { status }
+    );
+}
+
+/**
+ * Wrapper for API routes with authentication
+ * 
+ * Usage:
+ * export const GET = withAuth(async (request, user) => {
+ *   // user is automatically authenticated
+ *   return NextResponse.json({ data: 'protected data' });
+ * });
+ */
+export function withAuth(
+    handler: (request: Request, user: NonNullable<AuthenticatedRequest['user']>) => Promise<Response>
+) {
+    return async (request: Request) => {
+        try {
+            const user = await requireAuth(request);
+            return await handler(request, user);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Authentication failed';
+            return createErrorResponse(message, 401);
+        }
+    };
+}
+
+/**
+ * Wrapper for API routes with tenant access check
+ */
+export function withTenantAuth(
+    handler: (request: Request, user: NonNullable<AuthenticatedRequest['user']>, tenantId: string) => Promise<Response>
+) {
+    return async (request: Request, context: { params: { tenantId: string } }) => {
+        try {
+            const tenantId = context.params.tenantId;
+            const user = await requireTenantAccess(request, tenantId);
+            return await handler(request, user, tenantId);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Access denied';
+            return createErrorResponse(message, 403);
+        }
+    };
+}

@@ -1,0 +1,154 @@
+import { initializeApp, cert, getApps, App } from 'firebase-admin/app';
+import { getAuth, Auth } from 'firebase-admin/auth';
+import { getFirestore, Firestore } from 'firebase-admin/firestore';
+
+let app: App;
+let auth: Auth;
+let db: Firestore;
+
+/**
+ * Initialize Firebase Admin SDK
+ * This should be called once at application startup
+ */
+export function initializeFirebaseAdmin() {
+    if (getApps().length === 0) {
+        const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+        if (!privateKey || !process.env.FIREBASE_ADMIN_PROJECT_ID || !process.env.FIREBASE_ADMIN_CLIENT_EMAIL) {
+            throw new Error('Missing Firebase Admin credentials. Check your environment variables.');
+        }
+
+        app = initializeApp({
+            credential: cert({
+                projectId: process.env.FIREBASE_ADMIN_PROJECT_ID,
+                clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+                privateKey: privateKey,
+            }),
+        });
+
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        console.log('✅ Firebase Admin SDK initialized');
+    } else {
+        app = getApps()[0];
+        auth = getAuth(app);
+        db = getFirestore(app);
+    }
+
+    return { app, auth, db };
+}
+
+/**
+ * Get Firebase Auth instance
+ */
+export function getFirebaseAuth(): Auth {
+    if (!auth) {
+        initializeFirebaseAdmin();
+    }
+    return auth;
+}
+
+/**
+ * Get Firestore instance
+ */
+export function getFirebaseFirestore(): Firestore {
+    if (!db) {
+        initializeFirebaseAdmin();
+    }
+    return db;
+}
+
+/**
+ * Set custom claims for multi-tenancy
+ * @param uid - User ID
+ * @param tenantId - Tenant ID (clinic ID)
+ * @param role - User role (admin, owner, user)
+ */
+export async function setUserTenantClaims(
+    uid: string,
+    tenantId: string,
+    role: 'admin' | 'owner' | 'user'
+) {
+    const authInstance = getFirebaseAuth();
+    await authInstance.setCustomUserClaims(uid, { tenantId, role });
+    console.log(`✅ Set custom claims for user ${uid}: tenantId=${tenantId}, role=${role}`);
+}
+
+/**
+ * Verify Firebase ID token and return decoded token
+ * @param idToken - Firebase ID token from client
+ */
+export async function verifyIdToken(idToken: string) {
+    const authInstance = getFirebaseAuth();
+    try {
+        const decodedToken = await authInstance.verifyIdToken(idToken);
+        return decodedToken;
+    } catch (error) {
+        console.error('Error verifying ID token:', error);
+        throw new Error('Invalid or expired token');
+    }
+}
+
+/**
+ * Create a new user with email and password
+ * @param email - User email
+ * @param password - User password
+ * @param displayName - User display name
+ */
+export async function createUser(
+    email: string,
+    password: string,
+    displayName: string
+) {
+    const authInstance = getFirebaseAuth();
+    try {
+        const userRecord = await authInstance.createUser({
+            email,
+            password,
+            displayName,
+            emailVerified: false,
+        });
+        console.log(`✅ Created user: ${userRecord.uid}`);
+        return userRecord;
+    } catch (error) {
+        console.error('Error creating user:', error);
+        throw error;
+    }
+}
+
+/**
+ * Get user by email
+ * @param email - User email
+ */
+export async function getUserByEmail(email: string) {
+    const authInstance = getFirebaseAuth();
+    try {
+        const userRecord = await authInstance.getUserByEmail(email);
+        return userRecord;
+    } catch (error) {
+        console.error('Error getting user by email:', error);
+        return null;
+    }
+}
+
+/**
+ * Delete a user
+ * @param uid - User ID
+ */
+export async function deleteUser(uid: string) {
+    const authInstance = getFirebaseAuth();
+    try {
+        await authInstance.deleteUser(uid);
+        console.log(`✅ Deleted user: ${uid}`);
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        throw error;
+    }
+}
+
+// Note: Do not initialize on module load - only initialize when actually needed
+// This prevents build-time errors when environment variables aren't available
+
+export { app, auth, db };
+

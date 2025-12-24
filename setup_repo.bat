@@ -1,0 +1,19 @@
+@echo off
+echo Initializing Git repository...
+git init
+
+echo Adding remote origin...
+git remote add origin https://github.com/implementation-ai/ai-dental-receptionist-saas.git
+
+echo Adding files...
+git add .
+
+echo Committing changes...
+git commit -m "feat: setup CI/CD with Firebase Hosting"
+
+echo Pushing to GitHub...
+git branch -M main
+git push -u origin main
+
+echo Done! Checking status...
+pause

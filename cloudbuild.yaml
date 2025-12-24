@@ -1,0 +1,40 @@
+substitutions:
+  _IMAGE: "us-central1-docker.pkg.dev/ai-dental-receptionist-saas/nextjs/ai-dental-receptionist-saas"
+  _SERVICE: "ai-dental-receptionist-saas"
+  _REGION: "us-central1"
+  _URL: "https://ai-dental-receptionist-saas-504425939294.us-central1.run.app"
+
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['build', '-t', '${_IMAGE}', '.']
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', '${_IMAGE}']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        set -euo pipefail
+        gcloud run deploy ${_SERVICE} --image ${_IMAGE} --region ${_REGION} --platform managed --allow-unauthenticated --quiet --port 8080
+  - name: 'curlimages/curl:7.88.1'
+    entrypoint: 'sh'
+    args:
+      - '-c'
+      - |
+        set -eu
+        echo "Waiting for ${_URL} to respond (timeout 3m)..."
+        for i in $(seq 1 36); do
+          if curl -fsS -L "${_URL}" -o /dev/null; then
+            echo "Healthcheck passed"
+            exit 0
+          fi
+          echo "Attempt $i: service not ready yet, sleeping..."
+          sleep 5
+        done
+        echo "Healthcheck failed: ${_URL} did not respond in time"
+        exit 1
+
+images:
+  - '${_IMAGE}'
+
+timeout: '3600s'

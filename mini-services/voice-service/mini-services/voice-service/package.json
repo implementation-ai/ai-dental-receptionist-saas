@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "ai-voice-service": "file:../.."
+  }
+}

@@ -1,0 +1,71 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function belongsToTenant(tenantId) {
+      return isAuthenticated() && 
+             request.auth.token.tenantId == tenantId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() && 
+             request.auth.token.role == 'admin';
+    }
+    
+    function isTenantAdmin(tenantId) {
+      return isAuthenticated() && 
+             request.auth.token.tenantId == tenantId &&
+             request.auth.token.role in ['admin', 'owner'];
+    }
+    
+    // Tenants collection - only admins can create new tenants
+    match /tenants/{tenantId} {
+      allow read: if belongsToTenant(tenantId) || isAdmin();
+      allow create: if isAdmin();
+      allow update: if isTenantAdmin(tenantId) || isAdmin();
+      allow delete: if isAdmin();
+      
+      // Leads subcollection - tenant-scoped
+      match /leads/{leadId} {
+        allow read: if belongsToTenant(tenantId);
+        allow create: if belongsToTenant(tenantId);
+        allow update: if belongsToTenant(tenantId);
+        allow delete: if isTenantAdmin(tenantId);
+      }
+      
+      // Calls subcollection - tenant-scoped
+      match /calls/{callId} {
+        allow read: if belongsToTenant(tenantId);
+        allow create: if belongsToTenant(tenantId);
+        allow update: if belongsToTenant(tenantId);
+        allow delete: if isTenantAdmin(tenantId);
+      }
+      
+      // Users subcollection - tenant-scoped
+      match /users/{userId} {
+        allow read: if belongsToTenant(tenantId);
+        allow create: if isTenantAdmin(tenantId);
+        allow update: if belongsToTenant(tenantId) && 
+                       (request.auth.uid == userId || isTenantAdmin(tenantId));
+        allow delete: if isTenantAdmin(tenantId);
+      }
+      
+      // Settings subcollection - tenant admins only
+      match /settings/{settingId} {
+        allow read: if belongsToTenant(tenantId);
+        allow write: if isTenantAdmin(tenantId);
+      }
+    }
+    
+    // Public collection for landing page form submissions (before auth)
+    match /public_leads/{leadId} {
+      allow create: if true;  // Anyone can submit
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}

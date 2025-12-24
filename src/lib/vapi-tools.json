@@ -1,0 +1,59 @@
+[
+    {
+        "type": "function",
+        "function": {
+            "name": "checkAvailability",
+            "description": "Check for available appointment slots for a given date or range.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "date": {
+                        "type": "string",
+                        "description": "The date to check availability for (e.g., '2024-05-20' or 'tomorrow')."
+                    }
+                },
+                "required": [
+                    "date"
+                ]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "bookAppointment",
+            "description": "Book a new appointment for a patient.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "The patient's full name."
+                    },
+                    "phone": {
+                        "type": "string",
+                        "description": "The patient's phone number."
+                    },
+                    "date": {
+                        "type": "string",
+                        "description": "The date of the appointment (YYYY-MM-DD)."
+                    },
+                    "time": {
+                        "type": "string",
+                        "description": "The time of the appointment (HH:mm)."
+                    },
+                    "reason": {
+                        "type": "string",
+                        "description": "Reason for the visit."
+                    }
+                },
+                "required": [
+                    "name",
+                    "phone",
+                    "date",
+                    "time"
+                ]
+            }
+        }
+    }
+]
