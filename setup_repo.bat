@@ -68,7 +68,7 @@ if exist "requirements.txt" (
     )
     "%VENV_PYTHON%" -m pip install -r requirements.txt
     if errorlevel 1 (
-      echo %VENV_PYTHON% -m pip install -r requirements.txt failed; please review the output above.
+      echo "%VENV_PYTHON%" -m pip install -r requirements.txt failed; please review the output above.
       set "SETUP_FAILED=1"
     )
     :skip_python_install
@@ -88,5 +88,5 @@ endlocal
 exit /b 0
 
 :ensure_on_path
-where /q %1
+where /q "%~1"
 exit /b %ERRORLEVEL%
