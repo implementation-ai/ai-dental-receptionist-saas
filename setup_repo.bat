@@ -38,10 +38,10 @@ if exist "requirements.txt" (
       echo Virtual environment activation script not found; skipping Python dependency installation.
     ) else (
       call .venv\Scripts\activate
-      if errorlevel 1 (
+      if not defined VIRTUAL_ENV (
         echo Failed to activate virtual environment; skipping Python dependency installation.
       ) else (
-        pip install -r requirements.txt
+        python -m pip install -r requirements.txt
       )
     )
   )
