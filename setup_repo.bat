@@ -1,6 +1,7 @@
 @echo off
 setlocal
 set "SETUP_FAILED="
+set "VENV_PYTHON=.venv\Scripts\python.exe"
 
 rem Basic repository setup script for Windows environments.
 rem Run this from the repository root: .\setup_repo.bat
@@ -10,14 +11,14 @@ if not exist ".git" (
   exit /b 1
 )
 where /q git
-if %ERRORLEVEL% EQU 0 (
+if errorlevel 1 (
+  echo Git not found on PATH; skipping repository validation.
+) else (
   git rev-parse --git-dir >nul 2>&1
   if errorlevel 1 (
     echo This directory is not recognized as a valid Git repository.
     exit /b 1
   )
-) else (
-  echo Git not found on PATH; skipping repository validation.
 )
 
 echo Setting up repository...
@@ -61,13 +62,13 @@ if exist "requirements.txt" (
       set "SETUP_FAILED=1"
       goto :skip_python_install
     )
-    ".venv\Scripts\python.exe" -m pip install --upgrade pip
+    "%VENV_PYTHON%" -m pip install --upgrade pip
     if errorlevel 1 (
       echo Failed to upgrade pip; continuing with the existing version.
     )
-    ".venv\Scripts\python.exe" -m pip install -r requirements.txt
+    "%VENV_PYTHON%" -m pip install -r requirements.txt
     if errorlevel 1 (
-      echo python -m pip install failed; please review the output above.
+      echo %VENV_PYTHON% -m pip install -r requirements.txt failed; please review the output above.
       set "SETUP_FAILED=1"
     )
     :skip_python_install
