@@ -9,6 +9,16 @@ if not exist ".git" (
   echo This script must be run from the repository root.
   exit /b 1
 )
+where /q git
+if not errorlevel 1 (
+  git rev-parse --git-dir >nul 2>&1
+  if errorlevel 1 (
+    echo This directory is not recognized as a valid Git repository.
+    exit /b 1
+  )
+) else (
+  echo Git not found on PATH; skipping repository validation.
+)
 
 echo Setting up repository...
 
@@ -55,6 +65,10 @@ if exist "requirements.txt" (
       echo Virtual environment Python executable not found; skipping Python dependency installation.
       set "SETUP_FAILED=1"
       goto :skip_python_install
+    )
+    ".venv\Scripts\python.exe" -m pip install --upgrade pip
+    if errorlevel 1 (
+      echo Failed to upgrade pip; continuing with the existing version.
     )
     ".venv\Scripts\python.exe" -m pip install -r requirements.txt
     if errorlevel 1 (
