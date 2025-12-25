@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Phone, Calendar, Users, TrendingUp, CheckCircle, ArrowRight, CheckCircle2, Bot, Star, BarChart3, Mail, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
 import { useToast } from '@/hooks/use-toast'
+import { InteractiveDemo } from '@/components/layout/InteractiveDemo'
 
 export default function LandingPage() {
   const { toast } = useToast()
@@ -167,54 +168,9 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Hero Visual */}
-            <div className="relative mx-auto w-full max-w-[500px] lg:max-w-none hidden md:block">
-              <div className="relative rounded-2xl bg-white p-2 shadow-2xl border border-gray-100">
-                <div className="rounded-xl bg-gray-50 overflow-hidden border border-gray-100">
-                  <div className="bg-white p-4 border-b flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Bot className="h-8 w-8 text-blue-600 p-1 bg-blue-100 rounded-lg" />
-                      <div>
-                        <p className="font-semibold text-sm">Asistente Dental IA</p>
-                        <p className="text-xs text-green-600 flex items-center gap-1">
-                          <span className="block h-1.5 w-1.5 rounded-full bg-green-500"></span>
-                          En línea ahora
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">Llamada en curso...</Badge>
-                  </div>
-                  <div className="p-6 space-y-4 font-mono text-sm leading-relaxed">
-                    <div className="p-3 bg-white rounded-lg shadow-sm w-3/4 border border-gray-100">
-                      <span className="text-xs text-gray-400 block mb-1">Paciente</span>
-                      "Hola, quisiera pedir cita para una limpieza dental la próxima semana, preferiblemente por la tarde."
-                    </div>
-                    <div className="p-3 bg-blue-600 text-white rounded-lg shadow-sm w-3/4 ml-auto">
-                      <span className="text-xs text-blue-200 block mb-1">IA Receptionist</span>
-                      "¡Claro! Tengo un hueco libre el martes 24 a las 17:00 o el jueves 26 a las 16:30. ¿Cuál prefieres?"
-                    </div>
-                    <div className="p-3 bg-white rounded-lg shadow-sm w-3/4 border border-gray-100">
-                      <span className="text-xs text-gray-400 block mb-1">Paciente</span>
-                      "El martes a las 17:00 está perfecto."
-                    </div>
-                    <div className="flex justify-center py-2">
-                      <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-blue-200 gap-1 px-3 py-1">
-                        <Calendar className="h-3 w-3 inline mr-1" /> Cita Agendada: Google Calendar
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              {/* Floating Badges */}
-              <div className="absolute -left-8 top-1/2 animate-bounce bg-white p-3 rounded-lg shadow-xl border border-gray-100 hidden lg:block">
-                <div className="flex items-center gap-2">
-                  <Star className="h-5 w-5 text-yellow-400 fill-yellow-400" />
-                  <div>
-                    <p className="text-xs font-semibold">Valoración 4.9/5</p>
-                    <p className="text-[10px] text-gray-500">Más de 50 clínicas</p>
-                  </div>
-                </div>
-              </div>
+            {/* Hero Visual - Now Interactive! */}
+            <div className="hidden md:block">
+              <InteractiveDemo />
             </div>
           </div>
         </div>
